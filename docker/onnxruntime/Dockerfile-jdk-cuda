@@ -1,0 +1,24 @@
+FROM nvcr.io/nvidia/cuda:12.2.2-cudnn8-devel-ubuntu22.04
+
+RUN sed -i 's/archive.ubuntu.com/mirrors.aliyun.com/g' /etc/apt/sources.list \
+    && sed -i 's/security.ubuntu.com/mirrors.aliyun.com/g' /etc/apt/sources.list \
+    && apt-get clean \
+    && apt-get update
+
+RUN apt-get install -y locales
+RUN apt-get install -y openjdk-8-jdk
+RUN apt-get install -y ttf-wqy-zenhei
+
+RUN echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections
+RUN apt-get install -y ttf-mscorefonts-installer fontconfig \
+    && localedef -i zh_CN -c -f UTF-8 -A /usr/share/locale/locale.alias zh_CN.UTF-8  \
+    && apt-get autoremove -y  \
+    && apt-get clean -y  \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /usr/share/fonts/chinese && chmod -R 755 /usr/share/fonts/chinese
+ADD fonts.tar.gz /
+RUN mv /fonts/* /usr/share/fonts/chinese/ && cd  /usr/share/fonts/chinese && mkfontscale && mkfontdir && fc-cache -fv
+RUN rm -rf /fonts.tar.gz
+ENV LANG zh_CN.utf8
+
